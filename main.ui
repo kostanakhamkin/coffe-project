@@ -36,7 +36,7 @@
     <string notr="true">font: 24pt &quot;Calibri&quot;;</string>
    </property>
    <property name="text">
-    <string>Добавить сорт кофе</string>
+    <string>Добавить сорт кофе.</string>
    </property>
   </widget>
  </widget>
