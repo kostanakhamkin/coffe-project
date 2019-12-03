@@ -1,6 +1,6 @@
 ﻿import sqlite3
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QInputDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QInputDialog, QWidget
 import sys
 
 
@@ -10,7 +10,7 @@ class CoffeeInfo(QMainWindow):
         uic.loadUi('main.ui', self)
         self.setWindowTitle("CoffeeInfo")
         self.show_table()
-        self.pushButton.clicked.connect(self.add_info)
+        self.pushButton.clicked.connect(self.open_form)
 
     def show_table(self):
         self.CoffeeTable.setRowCount(0)
@@ -34,26 +34,35 @@ class CoffeeInfo(QMainWindow):
                     self.id = c
                 self.CoffeeTable.setItem(ri, ci, QTableWidgetItem(str(c)))
 
+    def open_form(self):
+        self.aw = AddInfoForm(self)
+        self.aw.show()
+
+
+class AddInfoForm(QWidget):
+    def __init__(self, sender):
+        super().__init__()
+        uic.loadUi('addEditCoffeeForm.ui', self)
+        self.setWindowTitle("AddInfo")
+        self.sender = sender
+        self.pushButton.clicked.connect(self.add_info)
+
     def add_info(self):
-        sn, b = QInputDialog.getText(self, 'Введите данные', 'Название сорта', False)
-        roastid, b = QInputDialog.getInt(self, 'Введите данные', 'Id обжарки', 0, 0, 7, False)
-        condition, b = QInputDialog.getInt(self, 'Введите данные', 'Id состояния', 0, 0, 1, False)
-        description, b = QInputDialog.getText(self, 'Введите данные', 'Описание', False)
-        price, b = QInputDialog.getInt(self, 'Введите данные', 'Цена', False)
-        volume, b = QInputDialog.getInt(self, 'Введите данные', 'Размер упаковки', False)
-        print([sn, roastid, condition, description, price, volume])
+        sort = self.isort.text()
+        roast = self.iroast.currentText()
+        cond = self.icond.currentText()
+        desc = self.idesc.toPlainText()
+        price = self.iprice.value()
+        vol = self.ivol.value()
         con = sqlite3.connect("coffee.sqlite.db")
         cur = con.cursor()
-        print(type(self.id))
-        print(type(3))
+        roastid = cur.execute("SELECT id From roast_table WHERE name = ?", (roast, )).fetchone()[0]
+        condid = cur.execute("SELECT id From coffee_condition WHERE condition = ?", (cond, )).fetchone()[0]
         con.execute("INSERT INTO coffee_types(Сорт, Обжарка, Состояние, Описание, Цена, Объем)"
-                    " VALUES (?,?,?,?,?,?)", (sn, roastid, condition, description, price, volume))
-        print(4)
-        self.id += 1
-        print(1)
+                    " VALUES (?,?,?,?,?,?)", (sort, roastid, condid, desc, price, vol))
         con.commit()
-        print(2)
-        self.show_table()
+        self.sender.show_table()
+        self.close()
 
 
 if __name__ == '__main__':
